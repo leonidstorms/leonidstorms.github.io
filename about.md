@@ -4,12 +4,11 @@ title: About
 permalink: /about/
 ---
 
-Some information about you!
-
-### More Information
-
-A place to include any other types of information that you'd like to include about yourself.
+Security+ certified, working on the OSCP, looking for a job, blue or red.
+Have your people get in touch with my people.
 
 ### Contact me
 
-[email@domain.com](mailto:email@domain.com)
+[email](mailto:leonidstorms@protonmail.com)
+[twitter](https://www.twitter.com/leonidstorms)
+[linkedin](https://www.linkedin.com/in/peterfboyle/)
