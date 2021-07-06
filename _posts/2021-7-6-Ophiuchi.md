@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Tenet
+title: Ophiuchi
 published: true
 ---
 
